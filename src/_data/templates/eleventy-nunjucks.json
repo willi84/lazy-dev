@@ -1,0 +1,72 @@
+{
+    "$schema": "./template.schema.json",
+    "name": "eleventy",
+    "version": "1.0.0",
+    "description": "Eleventy Nunjucks template",
+    "author": "Robert Willemelis (robert.dev@gmx.de)",
+    "baseProject": "daten.pm",
+    "source": "2025/daten.pm",
+    "files": [
+        ".eleventy.shim.js",
+        ".eleventyignore",
+        ".gitignore",
+        ".prettierrc",
+        "eleventy.config.js",
+        "eslint.config.cjs",
+        "eslint.config.ts",
+        "index.html",
+        "jest.config.js",
+        "jest.d.ts",
+        "LICENSE",
+        "package-lock.json",
+        "package.json",
+        "project.config.js",
+        "project.config.ts",
+        "README.md",
+        "tsconfig.eslint.json",
+        "tsconfig.json",
+        "vite.config.js",
+        "wallaby.js",
+        "src/postcss.config.js",
+        "src/_data/build.js",
+        "src/_data/main.json",
+        "src/backend/apps/api/index.ts",
+        "src/backend/_shared/config.ts",
+        "src/backend/_shared/index.d.ts",
+        "src/frontend/pages/index.njk",
+        "src/frontend/main.ts",
+        "src/backend/config.ts",
+        "src/backend/index.d.ts"
+    ],
+    "folders": [
+        "src/backend/_shared",
+        "src/backend/apps/atomic",
+        "src/backend/apps/api",
+        "src/backend/apps/healthcheck",
+        "src/backend/apps/lint",
+        "src/frontend/_framework",
+        "src/frontend/assets",
+        "src/frontend/components",
+        "src/frontend/templates",
+        "src/setup",
+        "docs"
+    ],
+    "renames": [
+        {
+            "from": "daten.pm",
+            "to": "{{ projectName }}"
+        },
+        {
+            "from": "2024",
+            "to": "{{ currentYear }}"
+        },
+        {
+            "from": "2025",
+            "to": "{{ currentYear }}"
+        },
+        {
+            "from": "datenpm",
+            "to": "{{ projectNameNoPunctuation }}"
+        }
+    ]
+}

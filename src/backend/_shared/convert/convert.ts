@@ -1,0 +1,82 @@
+/**
+ * 🎯 A utility class for converting values
+ * @module backend/_shared/item/CONVERT
+ * @example round(12.34567, 2);
+ * @version 0.0.1
+ * @date 2025-09-19
+ * @license MIT
+ * @author Robert Willemelis <github.com/willi84>
+ */
+
+import { Json, KEY_VALUE } from '../../index.d';
+import { LOG } from '../log/log';
+
+/**
+ * 🎯 convert the number to a string
+ * @param {number} value ➡️ The number to convert.
+ * @returns {string} 📤 The formatted number as a string with dots if needed.
+ */
+export const convertNumber2String = (value: number): string => {
+    return value.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+};
+
+/**
+ * 🎯 Splits a line into a key and value based on the first occurrence of either
+ * a colon or space.
+ * @todo stabilize more the content for spaces/newlines
+ * @param {string} line ➡️ The line to split.
+ * @returns {object} 📤 An object containing the key and value.
+ */
+export const convert2KeyValue = (line: string): KEY_VALUE => {
+    const matchesColon = line.match(/^([^\s]+)\:\s(.*)/); // KEY: value
+    const matchesSpace = line.match(/^([^\s]+)\s(.*)/); // KEY value
+    let key = '';
+    let value = '';
+    if (matchesColon && matchesColon[2]) {
+        key = matchesColon[1];
+        value = matchesColon[2];
+    } else if (matchesSpace && matchesSpace[2]) {
+        key = matchesSpace[1];
+        value = matchesSpace[2];
+    }
+    return {
+        key,
+        value,
+    };
+};
+
+/**
+ * 🎯 transform a key to camelCase
+ * @param {string} key ➡️ The key to transform.
+ * @returns {string} 📤 The transformed key in camelCase.
+ */
+export const convertKey2CamelCase = (key: string): string => {
+    let newKey = key.toLowerCase().trim();
+    if (newKey.indexOf('-') !== -1) {
+        const parts = newKey.split('-');
+        let finalKey = '';
+        parts.forEach((part: string, index: number) => {
+            if (index === 0) {
+                finalKey = part;
+            } else {
+                finalKey += part.charAt(0).toUpperCase() + part.slice(1);
+            }
+        });
+        newKey = finalKey;
+    }
+    return newKey;
+};
+/**
+ * 🎯 convert a string to JSON, if it fails, return an empty object
+ * @param {string} input ➡️ The string to convert.
+ * @return {object} 📤 The converted JSON object or an empty object if conversion fails.
+ */
+export const getJSON = (input: string): Json => {
+    try {
+        const json = JSON.parse(input);
+        return json;
+    } catch (e: any) {
+        LOG.FAIL(`Failed to parse JSON: ${e}`);
+    }
+    return {};
+};

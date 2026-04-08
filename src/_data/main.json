@@ -1,0 +1,33 @@
+{
+    "greeting": "Hello, World!",
+    "logo": {
+        "src": "/assets/logo.svg",
+        "alt": "Logo Image"
+    },
+    "footer": {
+        "text": "Made with ❤️ by Robert Willemelis"
+    },
+    "links": [
+        {
+            "text": "Dashboard",
+            "url": "dashboard",
+            "type": "button"
+        },
+        {
+            "text": "UDP",
+            "url": "udp",
+            "type": "button"
+        },
+        {
+            "text": "Mängelmelder",
+            "url": "civic_issues",
+            "type": "button"
+        },
+        {
+            "text": "Koordinaten",
+            "url": "coords",
+            "type": "button"
+        }
+
+    ]
+}

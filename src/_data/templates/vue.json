@@ -1,0 +1,30 @@
+{
+    "$schema": "./template.schema.json",
+    "name": "vue",
+    "version": "1.0.0",
+    "description": "VueJS template with TS",
+    "author": "Robert Willemelis (robert.dev@gmx.de)",
+    "baseProject": "pendler-alarm.de",
+    "source": "2026/pendler-alarm.de",
+    "files": [
+        "LICENSE"
+    ],
+    "folders": [
+        "docs"
+    ],
+    "renames": [
+        {
+            "from": "pendler-alarm.de",
+            "to": "{{ projectName }}"
+        },
+        {
+            "from": "2024",
+            "to": "{{ currentYear }}"
+        },
+        {
+            "from": "2025",
+            "to": "{{ currentYear }}"
+        }
+
+    ]
+}

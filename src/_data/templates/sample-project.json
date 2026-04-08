@@ -1,0 +1,37 @@
+{
+    "$schema": "./template.schema.json",
+    "name": "sample-project",
+    "version": "1.0.0",
+    "description": "A sample project template",
+    "author": "Robert Willemelis (robert.dev@gmx.de)",
+    "baseProject": "sample-project",
+    "source": "_tools/sample-project",
+    "files": [
+        "LICENSE",
+        "README.md",
+        "src/index.ts"
+    ],
+    "folders": [
+        "src/_shared",
+        "src/apps/api",
+        "docs"
+    ],
+    "renames": [
+        {
+            "from": "sample-project",
+            "to": "{{ projectName }}"
+        },
+        {
+            "from": "2024",
+            "to": "{{ currentYear }}"
+        },
+        {
+            "from": "2025",
+            "to": "{{ currentYear }}"
+        },
+        {
+            "from": "sample-project",
+            "to": "{{ projectNameNoPunctuation }}"
+        }
+    ]
+}

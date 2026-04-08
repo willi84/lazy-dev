@@ -7,11 +7,12 @@ import promptSync from 'prompt-sync';
 import {
     copyFolderStructure,
     displayAvailableTemplates,
+    displayLogs,
     getAvailableTemplates,
-    getFinalTargetFolder,
     getSelectedTemplate,
 } from './template/template';
 import { getHome } from '../../_shared/system/system';
+import { LogType } from '../../_shared/log/log.config';
 
 const prompt = promptSync();
 const PWD = command('pwd');
@@ -27,8 +28,6 @@ LOG.OK('Migration started');
 if (!TARGET_FOLDER) {
     TARGET_FOLDER = prompt('Enter target folder: ');
 }
-const FINAL_FOLDER = getFinalTargetFolder(TARGET_FOLDER);
-
 LOG.INFO(PWD);
 // LOG.INFO(`Source: ${SOURCE}`);
 LOG.OK(`Target: ${TARGET_FOLDER}`);
@@ -63,15 +62,19 @@ LOG.INFO(`Base project: ${CONFIG.folders}`);
 // copy folders
 const TARGET = `${DEV_FOLDER}/${TARGET_FOLDER}`;
 
-const isCreated = copyFolderStructure(
+LOG.INFO(`target folder is: ${TARGET}`);
+LOG.INFO(`source folder is: ${SELECTED_TEMPLATE.source}`);
+LOG.INFO(`template: ${SELECTED_TEMPLATE.name}`);
+
+const result = copyFolderStructure(
     TARGET_FOLDER,
     DEV_FOLDER,
     SELECTED_TEMPLATE
 );
+const isCreated = result.success;
 if (isCreated) {
     LOG.OK(`Folder structure created successfully at ${TARGET}`);
 } else {
-    LOG.WARN(
-        `Folder structure already exists at ${TARGET}. Skipping creation.`
-    );
+    displayLogs(result.warnings, LogType.WARN);
+    displayLogs(result.errors, LogType.FAIL);
 }

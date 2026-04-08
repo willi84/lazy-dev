@@ -3,6 +3,7 @@ import { LOG } from '../../../_shared/log/log';
 import { DEBUG_LOG, TEMPLATE, TEMPLATE_CONFIG } from './template.d';
 import { getJSON } from '../../../_shared/convert/convert';
 import { FileItem } from '../../..';
+import { LogType } from '../../../_shared/log/log.config';
 
 /**
  * 🎯 Create a debug log object
@@ -106,20 +107,23 @@ export const getFinalTargetFolder = (targetFolder: string): string => {
  * @param {string} target ➡️ Target folder where the structure should be copied
  * @param {string} basePath ➡️ Base path of the template
  * @param {string} source ➡️ Source folder in the template to copy
- * @param {DEBUG_LOG} debuglog ➡️ Debug log to collect warnings and errors
+ * @param {DEBUG_LOG} debugLog ➡️ Debug log to collect warnings and errors
  * @returns {void} 📤 nothing
  */
 export const copyFolder = (
     target: string,
     basePath: string,
     source: string,
-    debuglog: DEBUG_LOG
+    debugLog: DEBUG_LOG
 ) => {
     // get files and folders from source
     const sourcePath = `${basePath}/${source}`;
     const items: FileItem[] = FS.listDetails(sourcePath, true);
     const targetPath = `${basePath}/${target}`;
-    if (!FS.exists(targetPath)) {
+    if (!FS.exists(sourcePath)) {
+        debugLog.errors.push(`Source folder "${sourcePath}" does not exist.`);
+        debugLog.success = false;
+    } else if (!FS.exists(targetPath)) {
         FS.createFolder(targetPath);
         LOG.OK(`Created target folder ${targetPath}`);
     }
@@ -128,12 +132,13 @@ export const copyFolder = (
         const relativeItem = sourceFile.replace(`${sourcePath}/`, '');
         const targetFile = `${targetPath}/${relativeItem}`;
         if (item.type === 'folder') {
+            // creating empty folder, fileCreation already creates other folder
             if (!FS.exists(targetFile)) {
                 FS.createFolder(targetFile);
                 LOG.OK(`Created folder ${targetFile}`);
             }
         } else {
-            copyFile(targetFile, sourceFile, debuglog);
+            copyFile(targetFile, sourceFile, debugLog);
         }
     }
 };
@@ -193,12 +198,14 @@ export const copyFolderStructure = (
     }
     // copy Folders
     for (const folder of config.folders) {
-        copyFolder(
-            `${target}/${folder}`,
-            basePath,
-            `${source}/${folder}`,
-            debugLog
-        );
+        const sourceFolder = `${source}/${folder}`;
+        const targetFolder = `${target}/${folder}`;
+        if (!FS.exists(`${basePath}/${sourceFolder}`)) {
+            FS.createFolder(`${basePath}/${targetFolder}`);
+            LOG.OK(`Created empty target folder ${targetFolder}`);
+        } else {
+            copyFolder(targetFolder, basePath, sourceFolder, debugLog);
+        }
     }
 
     // copyFolders(target, config.folders, basePath, debugLog);
@@ -208,4 +215,15 @@ export const copyFolderStructure = (
         copyFile(targetfile, sourceFile, debugLog);
     }
     return debugLog;
+};
+/**
+ * 🎯 Display logs with correct format
+ * @param {string[]} logs ➡️ Array of log messages to display
+ * @param {LogType} type ➡️ Type of log (e.g. OK, FAIL, WARN)
+ * @returns {void} 📤 nothing
+ */
+export const displayLogs = (logs: string[], type: LogType) => {
+    for (const log of logs) {
+        LOG[type](log);
+    }
 };

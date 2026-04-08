@@ -8,11 +8,13 @@ import {
     getFinalTargetFolder,
     getSelectedTemplate,
     createDebugLog,
+    displayLogs,
 } from './template';
 import * as mock from 'mock-fs';
 import { FS } from '../../../_shared/fs/fs';
-import { createSpyLog } from '../../../_shared/log/log.test_lib';
+import { setupSpyLog } from '../../../_shared/log/log.test_lib';
 import { FileItem } from '../../../index.d';
+import { LogType } from '../../../_shared/log/log.config';
 
 const createSampleConfig = (key: string) => {
     return {
@@ -31,7 +33,7 @@ const createSampleConfig = (key: string) => {
 describe('with FS mock', () => {
     const SAMPLE_CONFIG: TEMPLATE_CONFIG = createSampleConfig('vue');
     const ANGULAR_CONFIG: TEMPLATE_CONFIG = createSampleConfig('angular');
-    let spyLog = createSpyLog();
+    let spyLog = setupSpyLog();
     beforeEach(() => {
         const content: string = JSON.stringify(SAMPLE_CONFIG);
         mock({
@@ -144,6 +146,7 @@ describe('with FS mock', () => {
                 foo: {
                     'test.html': 'content',
                 },
+                lorem: {},
             },
             'other-test.csv': 'content',
         };
@@ -158,6 +161,7 @@ describe('with FS mock', () => {
             const EXPECTED: FileItem[] = [
                 { path: 'dev/target/blubber/foo/test.html', type: 'file' },
                 { path: 'dev/target/blubber/foo', type: 'folder' },
+                { path: 'dev/target/blubber/lorem', type: 'folder' },
                 { path: 'dev/target/blubber', type: 'folder' },
                 { path: 'dev/target/other-test.csv', type: 'file' },
             ];
@@ -183,6 +187,7 @@ describe('with FS mock', () => {
             const EXPECTED: FileItem[] = [
                 { path: 'dev/target/blubber/foo/test.html', type: 'file' },
                 { path: 'dev/target/blubber/foo', type: 'folder' },
+                { path: 'dev/target/blubber/lorem', type: 'folder' },
                 { path: 'dev/target/blubber', type: 'folder' },
                 ...EXISTING,
                 { path: 'dev/target/other-test.csv', type: 'file' },
@@ -210,6 +215,7 @@ describe('with FS mock', () => {
             const EXPECTED: FileItem[] = [
                 { path: 'dev/target/blubber/foo/test.html', type: 'file' },
                 { path: 'dev/target/blubber/foo', type: 'folder' },
+                { path: 'dev/target/blubber/lorem', type: 'folder' },
                 { path: 'dev/target/blubber', type: 'folder' },
                 ...EXISTING,
             ];
@@ -219,6 +225,24 @@ describe('with FS mock', () => {
             expect(FS.listDetails(targetPath, true)).toEqual(EXPECTED);
             expect(debugLog.warnings).toEqual([
                 `Target file ${targetPath}/other-test.csv already exists.`,
+            ]);
+            expect(debugLog.success).toEqual(false);
+        });
+        it('should not create the folder structure based on the template config if a folder not exists', () => {
+            mock({
+                dev: {
+                    'no-copy.txt': 'content',
+                },
+            });
+            const EXISTING: FileItem[] = [];
+            const EXPECTED: FileItem[] = [];
+            const debugLog = createDebugLog();
+            expect(FS.listDetails(targetPath, true)).toEqual(EXISTING);
+            FN(target, basePath, source, debugLog);
+            expect(FS.listDetails(targetPath, true)).toEqual(EXPECTED);
+            expect(debugLog.warnings).toEqual([]);
+            expect(debugLog.errors).toEqual([
+                `Source folder "${basePath}/${source}" does not exist.`,
             ]);
             expect(debugLog.success).toEqual(false);
         });
@@ -283,17 +307,36 @@ describe('with FS mock', () => {
             'main.js': 'content1',
             foo: { 'index.html': 'content' },
         };
+        const template2 = {
+            src: {
+                'some-file.js': 'content of js',
+            },
+            'main.js': 'content1',
+            foo: { 'index.html': 'content' },
+        };
         const target = 'target';
         const basePath = 'dev';
         const TARGET_FOLDER = `${basePath}/${target}`;
-        const EXPECTED: FileItem[] = [
+        const BASE: FileItem[] = [
             { path: 'dev/target/foo/index.html', type: 'file' },
             { path: 'dev/target/foo', type: 'folder' },
             { path: 'dev/target/main.js', type: 'file' },
-            { path: 'dev/target/public/index.html', type: 'file' },
-            { path: 'dev/target/public', type: 'folder' },
+        ];
+        const SRC: FileItem[] = [
             { path: 'dev/target/src/some-file.js', type: 'file' },
             { path: 'dev/target/src', type: 'folder' },
+        ];
+        const EXPECTED: FileItem[] = [
+            ...BASE,
+            { path: 'dev/target/public/index.html', type: 'file' },
+            { path: 'dev/target/public', type: 'folder' },
+            ...SRC,
+        ];
+        const EXPECTED2: FileItem[] = [
+            ...BASE,
+            // { path: 'dev/target/public/index.html', type: 'file' },
+            { path: 'dev/target/public', type: 'folder' },
+            ...SRC,
         ];
         it('should copy files from base project to target folder', () => {
             mock({ dev: { template } });
@@ -301,6 +344,13 @@ describe('with FS mock', () => {
             expect(debugLog.errors).toEqual([]);
             expect(debugLog.success).toEqual(true);
             expect(FS.listDetails(TARGET_FOLDER, true)).toEqual(EXPECTED);
+        });
+        it('should copy files from base project to target and create empty folder', () => {
+            mock({ dev: { template: template2 } });
+            const debugLog: DEBUG_LOG = FN(target, basePath, TEMPLATE);
+            expect(debugLog.errors).toEqual([]);
+            expect(debugLog.success).toEqual(true);
+            expect(FS.listDetails(TARGET_FOLDER, true)).toEqual(EXPECTED2);
         });
         it('should not copy files if source not exists', () => {
             mock({ dev: { source: template } });
@@ -321,6 +371,25 @@ describe('with FS mock', () => {
             ]);
             expect(debugLog.success).toEqual(false);
             expect(FS.listDetails(TARGET_FOLDER, true)).toEqual(EXPECTED);
+        });
+    });
+});
+describe('without mockFS', () => {
+    let spyLog = setupSpyLog();
+    describe('displayLogs()', () => {
+        it('should display logs with correct format', () => {
+            const FN = displayLogs;
+            const messages = ['This is 1 message', 'This is 2 message'];
+            FN(messages, LogType.WARN);
+            expect(spyLog).hasWARN('This is 1 message');
+            expect(spyLog).hasWARN('This is 2 message');
+        });
+        it('should display logs with correct format', () => {
+            const FN = displayLogs;
+            const messages = ['This is 1 message', 'This is 2 message'];
+            FN(messages, LogType.FAIL);
+            expect(spyLog).hasFAIL('This is 1 message');
+            expect(spyLog).hasFAIL('This is 2 message');
         });
     });
 });
